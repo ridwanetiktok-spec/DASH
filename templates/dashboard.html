@@ -585,6 +585,7 @@
     {% set total_recipients = totals.total_recipients %}
     {% set delivery_rate = totals.delivery_rate|round(1) %}
     {% set ctr = totals.ctr|round(1) %}
+    {% set open_rate = totals.open_rate|round(1) %}
 
     <div class="stats-grid">
         <div class="stat-card sent">
@@ -605,6 +606,16 @@
             </div>
             <div class="stat-num">{{ totals.clicked }}</div>
             <div class="stat-trend">📈 {{ ctr }}% CTR</div>
+        </div>
+
+        <div class="stat-card clicked">
+            <div class="stat-glow"></div>
+            <div class="stat-header">
+                <div class="stat-icon">👁️</div>
+                <span class="stat-label">Unique Opens</span>
+            </div>
+            <div class="stat-num">{{ totals.opened }}</div>
+            <div class="stat-trend">📬 {{ totals.total_opens }} total opens · {{ open_rate }}% open rate</div>
         </div>
 
         <div class="stat-card bounced">
@@ -710,6 +721,7 @@
                         <th>Email</th>
                         <th>Status</th>
                         <th>Sent At (UTC)</th>
+                        <th>Opens</th>
                         <th>Clicks</th>
                         <th>Error</th>
                     </tr>
@@ -717,7 +729,7 @@
                 <tbody>
                     {% if rows|length == 0 %}
                     <tr>
-                        <td colspan="5">
+                        <td colspan="6">
                             <div class="empty-state">
                                 <div class="icon">📭</div>
                                 <h3>No Campaigns Sent Yet</h3>
@@ -727,7 +739,7 @@
                     </tr>
                     {% else %}
                     {% for r in rows %}
-                    <tr data-status="{{ r.status }}" data-clicks="{{ r.clicks }}" data-date="{{ r.sent_at.split('T')[0] if r.sent_at else '' }}">
+                    <tr data-status="{{ r.status }}" data-opens="{{ r.opens }}" data-clicks="{{ r.clicks }}" data-date="{{ r.sent_at.split('T')[0] if r.sent_at else '' }}">
                         <td class="email">{{ r.email }}</td>
                         <td>
                             <span class="status-badge {{ r.status }}">
@@ -736,6 +748,7 @@
                             </span>
                         </td>
                         <td class="time">{{ r.sent_at }}</td>
+                        <td><span class="click-badge">{{ r.opens }}</span></td>
                         <td><span class="click-badge">{{ r.clicks }}</span></td>
                         <td class="error">{{ r.error }}</td>
                     </tr>
