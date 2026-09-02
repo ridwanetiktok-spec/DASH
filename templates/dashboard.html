@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Campaign Dashboard - Full History</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        margin: 0;
+        padding: 40px;
+        color: #e2e8f0;
+        min-height: 100vh;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 36px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+    }
+
+    .logo-box {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+    }
+
+    h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        background: linear-gradient(90deg, #f8fafc, #94a3b8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+        margin: 0;
+        color: #64748b;
+        font-size: 15px;
+        font-weight: 400;
+    }
+
+    .live-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(30,41,59,0.6);
+        border: 1px solid rgba(99,102,241,0.2);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #94a3b8;
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #22c55e;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #22c55e;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 36px;
+    }
+
+    .stat-card {
+        background: rgba(30,41,59,0.6);
+        border-radius: 16px;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(99,102,241,0.15);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(99,102,241,0.3);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    .stat-card.sent { border-color: rgba(99,102,241,0.15); }
+    .stat-card.clicked { border-color: rgba(34,197,94,0.15); }
+    .stat-card.bounced { border-color: rgba(239,68,68,0.15); }
+    .stat-card.delivery { border-color: rgba(245,158,11,0.15); }
+
+    .stat-glow {
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        opacity: 0.15;
+    }
+
+    .stat-card.sent .stat-glow { background: linear-gradient(135deg, #6366f1, transparent); }
+    .stat-card.clicked .stat-glow { background: linear-gradient(135deg, #22c55e, transparent); }
+    .stat-card.bounced .stat-glow { background: linear-gradient(135deg, #ef4444, transparent); }
+    .stat-card.delivery .stat-glow { background: linear-gradient(135deg, #f59e0b, transparent); }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .stat-card.sent .stat-icon { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+    .stat-card.clicked .stat-icon { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .stat-card.bounced .stat-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .stat-card.delivery .stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+    .stat-label {
+        color: #94a3b8;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        font-weight: 600;
+    }
+
+    .stat-num {
+        font-size: 36px;
+        font-weight: 800;
+        color: #f8fafc;
+        margin-bottom: 6px;
+        letter-spacing: -1px;
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .stat-card.sent .stat-trend, .stat-card.clicked .stat-trend { color: #22c55e; }
+    .stat-card.bounced .stat-trend { color: #ef4444; }
+    .stat-card.delivery .stat-trend { color: #f59e0b; }
+
+    .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 8px;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        border-radius: 2px;
+        transition: width 0.8s ease;
+    }
+
+    /* Time Series */
+    .time-series {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 24px;
+        padding: 16px 20px;
+        background: rgba(30,41,59,0.3);
+        border-radius: 12px;
+        border: 1px solid rgba(99,102,241,0.05);
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+
+    .day-stat {
+        text-align: center;
+        padding: 6px 8px;
+        border-radius: 6px;
+        background: rgba(15,23,42,0.3);
+        min-width: 55px;
+        flex-shrink: 0;
+    }
+    .day-stat .date {
+        font-size: 9px;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .day-stat .sent {
+        color: #22c55e;
+        font-weight: 700;
+        font-size: 12px;
+    }
+    .day-stat .bounced {
+        color: #ef4444;
+        font-weight: 700;
+        font-size: 12px;
+    }
+
+    /* Filters */
+    .filter-bar {
+        padding: 16px 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: center;
+        background: rgba(30,41,59,0.2);
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-group label {
+        color: #94a3b8;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
+
+    .filter-select, .filter-input {
+        background: rgba(15,23,42,0.6);
+        border: 1px solid rgba(99,102,241,0.2);
+        border-radius: 8px;
+        color: #e2e8f0;
+        padding: 6px 10px;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .filter-select:focus, .filter-input:focus {
+        border-color: rgba(99,102,241,0.5);
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+
+    .filter-input::-webkit-calendar-picker-indicator {
+        filter: invert(0.7);
+        cursor: pointer;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+        align-items: center;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: inherit;
+        font-size: 12px;
+    }
+    .btn-filter:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    }
+
+    .btn-reset {
+        background: rgba(99,102,241,0.1);
+        color: #a5b4fc;
+        border: 1px solid rgba(99,102,241,0.2);
+        padding: 6px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-family: inherit;
+        font-size: 12px;
+    }
+    .btn-reset:hover {
+        background: rgba(99,102,241,0.2);
+    }
+
+    .stats-total {
+        color: #64748b;
+        font-size: 12px;
+        padding: 4px 12px;
+        background: rgba(15,23,42,0.4);
+        border-radius: 8px;
+    }
+    .stats-total strong {
+        color: #f8fafc;
+    }
+
+    .table-section {
+        background: rgba(30,41,59,0.5);
+        border: 1px solid rgba(99,102,241,0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        margin-bottom: 24px;
+    }
+
+    .table-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .table-header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #f8fafc;
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-ghost {
+        background: rgba(99,102,241,0.15);
+        border: 1px solid rgba(99,102,241,0.3);
+        color: #818cf8;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-ghost:hover {
+        background: rgba(99,102,241,0.25);
+        border-color: rgba(99,102,241,0.5);
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead tr {
+        background: rgba(15,23,42,0.6);
+    }
+
+    th {
+        padding: 14px 20px;
+        text-align: left;
+        color: #94a3b8;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    tbody tr {
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        transition: background 0.2s;
+    }
+
+    tbody tr:hover {
+        background: rgba(99,102,241,0.05);
+    }
+
+    td {
+        padding: 14px 20px;
+        font-size: 14px;
+    }
+
+    td.email {
+        color: #e2e8f0;
+        font-weight: 500;
+    }
+
+    td.time {
+        color: #64748b;
+        font-size: 13px;
+        font-family: 'SF Mono', monospace;
+    }
+
+    td.error {
+        color: #ef4444;
+        font-size: 13px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+    }
+
+    .empty-state .icon {
+        font-size: 56px;
+        margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+        color: #94a3b8;
+        margin: 0 0 8px 0;
+        font-size: 18px;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .status-badge.sent {
+        background: rgba(34,197,94,0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34,197,94,0.2);
+    }
+
+    .status-badge.bounced {
+        background: rgba(239,68,68,0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,0.2);
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .status-badge.sent .status-dot {
+        background: #22c55e;
+        box-shadow: 0 0 6px #22c55e;
+    }
+
+    .status-badge.bounced .status-dot {
+        background: #ef4444;
+        box-shadow: 0 0 6px #ef4444;
+    }
+
+    .click-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2));
+        color: #a5b4fc;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid rgba(99,102,241,0.2);
+    }
+
+    .info-card {
+        background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.04));
+        border: 1px solid rgba(99,102,241,0.15);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    }
+
+    .info-card h4 {
+        margin: 0 0 10px 0;
+        color: #c7d2fe;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .info-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 1.8;
+    }
+
+    .info-card li strong {
+        color: #c7d2fe;
+    }
+
+    @media (max-width: 600px) {
+        body { padding: 16px; }
+        h1 { font-size: 24px; }
+        .stat-num { font-size: 28px; }
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        .filter-bar { flex-direction: column; align-items: flex-start; }
+        .filter-actions { margin-left: 0; width: 100%; }
+    }
+</style>
+<base target="_blank">
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <div class="header-left">
+                <div class="logo-box">📊</div>
+                <h1>Campaign Dashboard</h1>
+            </div>
+            <p class="subtitle">Complete email history with persistent data</p>
+        </div>
+        <div class="live-badge">
+            <span class="live-dot"></span>
+            {{ totals.total_recipients }} total recipients
+        </div>
+    </div>
+
+    {% set total_recipients = totals.total_recipients %}
+    {% set delivery_rate = totals.delivery_rate|round(1) %}
+    {% set ctr = totals.ctr|round(1) %}
+
+    <div class="stats-grid">
+        <div class="stat-card sent">
+            <div class="stat-glow"></div>
+            <div class="stat-header">
+                <div class="stat-icon">📨</div>
+                <span class="stat-label">Total Sent</span>
+            </div>
+            <div class="stat-num">{{ totals.sent }}</div>
+            <div class="stat-trend">📬 {{ total_recipients }} total recipients</div>
+        </div>
+
+        <div class="stat-card clicked">
+            <div class="stat-glow"></div>
+            <div class="stat-header">
+                <div class="stat-icon">🖱️</div>
+                <span class="stat-label">Total Clicks</span>
+            </div>
+            <div class="stat-num">{{ totals.clicked }}</div>
+            <div class="stat-trend">📈 {{ ctr }}% CTR</div>
+        </div>
+
+        <div class="stat-card bounced">
+            <div class="stat-glow"></div>
+            <div class="stat-header">
+                <div class="stat-icon">❌</div>
+                <span class="stat-label">Total Bounced</span>
+            </div>
+            <div class="stat-num">{{ totals.bounced }}</div>
+            <div class="stat-trend">📊 {{ totals.bounce_rate|round(1) }}% bounce rate</div>
+        </div>
+
+        <div class="stat-card delivery">
+            <div class="stat-glow"></div>
+            <div class="stat-header">
+                <div class="stat-icon">🎯</div>
+                <span class="stat-label">Delivery Rate</span>
+            </div>
+            <div class="stat-num">{{ delivery_rate }}%</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ delivery_rate }}%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Series -->
+    {% if time_series %}
+    <div class="time-series">
+        {% for day in time_series %}
+        <div class="day-stat">
+            <div class="date">{{ day.date }}</div>
+            <div class="sent">✅ {{ day.sent }}</div>
+            <div class="bounced">❌ {{ day.bounced }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-section">
+        <div class="table-header">
+            <h2>Campaign Recipients History</h2>
+            <div class="table-actions">
+                <button class="btn-ghost" onclick="exportCSV()">📥 Export CSV</button>
+                <button class="btn-ghost" onclick="location.reload()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="statusFilter">Status</label>
+                <select id="statusFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="all">All</option>
+                    <option value="sent">Sent</option>
+                    <option value="bounced">Bounced</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="dateFrom">Date From</label>
+                <input type="date" id="dateFrom" class="filter-input" onchange="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label for="dateTo">Date To</label>
+                <input type="date" id="dateTo" class="filter-input" onchange="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label for="emailSearch">Search Email</label>
+                <input type="text" id="emailSearch" class="filter-input" placeholder="Search..." onchange="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <label for="clicksFilter">Min Clicks</label>
+                <select id="clicksFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="all">All</option>
+                    <option value="0">0</option>
+                    <option value="1">1+</option>
+                    <option value="2">2+</option>
+                    <option value="3">3+</option>
+                    <option value="5">5+</option>
+                    <option value="10">10+</option>
+                    <option value="20">20+</option>
+                    <option value="50">50+</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="sortFilter">Sort</label>
+                <select id="sortFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="default">Default</option>
+                    <option value="clicks_asc">Clicks ↑</option>
+                    <option value="clicks_desc">Clicks ↓</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button class="btn-filter" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn-reset" onclick="clearFilters()">Reset</button>
+                <span class="stats-total">Showing <strong id="visibleCount">{{ rows|length }}</strong> rows</span>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Sent At (UTC)</th>
+                        <th>Clicks</th>
+                        <th>Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rows|length == 0 %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <div class="icon">📭</div>
+                                <h3>No Campaigns Sent Yet</h3>
+                                <p>Send your first campaign using the local sender tool.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    {% for r in rows %}
+                    <tr data-status="{{ r.status }}" data-clicks="{{ r.clicks }}" data-date="{{ r.sent_at.split('T')[0] if r.sent_at else '' }}">
+                        <td class="email">{{ r.email }}</td>
+                        <td>
+                            <span class="status-badge {{ r.status }}">
+                                <span class="status-dot"></span>
+                                {{ r.status }}
+                            </span>
+                        </td>
+                        <td class="time">{{ r.sent_at }}</td>
+                        <td><span class="click-badge">{{ r.clicks }}</span></td>
+                        <td class="error">{{ r.error }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-icon">📌</div>
+        <div>
+            <h4>About Tracking</h4>
+            <ul>
+                <li><strong>Persistent Data:</strong> All history is stored in <code>tracking.db</code></li>
+                <li><strong>Link Rewriting:</strong> All links are rewritten to go through our tracking server</li>
+                <li><strong>Click Tracking:</strong> 100% reliable — no images needed</li>
+                <li><strong>Privacy Note:</strong> Only tracks when users click links in the email</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh every 60 seconds
+        setTimeout(() => location.reload(), 60000);
+
+        // Export CSV functionality
+        function exportCSV() {
+            window.location.href = '/api/export';
+        }
+
+        // Filter & sort logic
+        function applyFilters() {
+            const statusVal = document.getElementById('statusFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const emailSearch = document.getElementById('emailSearch').value.toLowerCase();
+            const clicksVal = document.getElementById('clicksFilter').value;
+            const sortVal = document.getElementById('sortFilter').value;
+
+            const tbody = document.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => !row.querySelector('td[colspan]'));
+
+            const rowData = rows.map(row => {
+                const status = row.dataset.status || '';
+                const rowDate = row.dataset.date || '';
+                const email = row.querySelector('.email')?.textContent.toLowerCase() || '';
+                const clicks = parseInt(row.dataset.clicks) || 0;
+
+                let show = true;
+
+                if (statusVal !== 'all' && status !== statusVal) show = false;
+                if (dateFrom && rowDate < dateFrom) show = false;
+                if (dateTo && rowDate > dateTo) show = false;
+                if (emailSearch && !email.includes(emailSearch)) show = false;
+                if (clicksVal !== 'all') {
+                    const minClicks = parseInt(clicksVal);
+                    if (clicks < minClicks) show = false;
+                }
+
+                return { row, clicks, show };
+            });
+
+            // Sort rows
+            if (sortVal === 'clicks_asc') {
+                rowData.sort((a, b) => a.clicks - b.clicks);
+            } else if (sortVal === 'clicks_desc') {
+                rowData.sort((a, b) => b.clicks - a.clicks);
+            } else {
+                rowData.sort((a, b) => parseInt(a.row.dataset.originalIndex) - parseInt(b.row.dataset.originalIndex));
+            }
+
+            // Re-append in order and apply visibility
+            let visible = 0;
+            rowData.forEach(({ row, show }) => {
+                row.style.display = show ? '' : 'none';
+                tbody.appendChild(row);
+                if (show) visible++;
+            });
+
+            document.getElementById('visibleCount').textContent = visible;
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('emailSearch').value = '';
+            document.getElementById('clicksFilter').value = 'all';
+            document.getElementById('sortFilter').value = 'default';
+            applyFilters();
+        }
+
+        // Store original row order so "Default" sort works
+        document.addEventListener('DOMContentLoaded', () => {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach((row, index) => {
+                if (!row.querySelector('td[colspan]')) {
+                    row.dataset.originalIndex = index;
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
