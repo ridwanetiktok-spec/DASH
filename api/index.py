@@ -296,7 +296,18 @@ def register_recipient():
 
 @app.route("/health")
 def health():
-    return "OK"
+    try:
+        conn = get_db()
+        conn.close()
+        return jsonify({
+            "status": "ok",
+            "database": "connected"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
 
 
 @app.route("/track/click/<recipient_id>")
