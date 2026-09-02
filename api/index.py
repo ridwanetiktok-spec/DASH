@@ -51,9 +51,22 @@ TRANSPARENT_PIXEL = (
 
 
 def get_db():
+    db_url = (
+        os.environ.get("POSTGRES_URL")
+        or os.environ.get("DATABASE_URL")
+        or os.environ.get("dash_storage_DATABASE_URL")
+        or os.environ.get("dash_storage_POSTGRES_URL")
+    )
+
+    if not db_url:
+        raise RuntimeError(
+            "No PostgreSQL connection string found in environment variables."
+        )
+
     return psycopg2.connect(
-        os.environ["POSTGRES_URL"],
+        db_url,
         cursor_factory=RealDictCursor,
+        sslmode="require"
     )
 
 
