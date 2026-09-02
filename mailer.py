@@ -41,7 +41,12 @@ def add_utm_params(url: str, campaign_source: str = "email",
     
     return new_url
 
-def build_tracked_html(raw_html: str, campaign_name: str = "email_campaign") -> str:
+def build_tracked_html(
+    raw_html: str,
+    campaign_name: str = "email_campaign",
+    recipient_id=None,
+    public_base_url=None,
+) -> str:
     """
     Rewrite links to go through GitHub redirect page with GA4 tracking,
     then redirect to final landing page.
@@ -69,4 +74,33 @@ def build_tracked_html(raw_html: str, campaign_name: str = "email_campaign") -> 
         return f'href="{redirect_url}"'
     
     html = LINK_PATTERN.sub(replace_link, raw_html)
-    return html
+
+    if not recipient_id or not public_base_url:
+        return html
+
+    def wrap_click_tracking(match):
+        destination = match.group(1)
+        if not destination.startswith(GITHUB_REDIRECT_URL):
+            return match.group(0)
+
+        click_url = (
+            f"{public_base_url.rstrip('/')}/track/click/{recipient_id}"
+            f"?url={quote(destination, safe='')}"
+        )
+        return f'href="{click_url}"'
+
+    html = LINK_PATTERN.sub(wrap_click_tracking, html)
+    pixel = (
+        f'<img src="{public_base_url.rstrip('/')}/track/open/{recipient_id}" '
+        'width="1" height="1" style="display:none" alt="">'
+    )
+
+    if re.search(r"</body\s*>", html, flags=re.IGNORECASE):
+        return re.sub(
+            r"</body\s*>",
+            f"{pixel}</body>",
+            html,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    return f"{html}{pixel}"
